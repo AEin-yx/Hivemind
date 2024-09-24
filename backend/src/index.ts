@@ -1,6 +1,8 @@
 import express from "express";
 import userRouter from "./routers/user";
 import workerRouter from "./routers/worker";
+export const JWT_SECRET="union12";
+
 const app=express();
 require('dotenv').config();
 app.use("/v1/user",userRouter);
