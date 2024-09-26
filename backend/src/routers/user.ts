@@ -5,7 +5,9 @@ import { JWT_SECRET } from "..";
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { authMiddleware } from "../middleware";
+import { createTaskInput } from "./types";
 
+const DEFAULT_TITLE="Clcik the most clickable thumbnail";
 require('dotenv').configDotenv();
 const s3Client = new S3Client({
     credentials:{
@@ -19,7 +21,45 @@ const router=Router();
 
 const prismaClient=new PrismaClient();
 
-router.get("/getpresignedUrl",authMiddleware,async(req,res)=>{
+router.post("/task",authMiddleware,async (req,res)=>{
+    // validate input from user
+    const body=req.body;
+    //@ts-ignore
+    const userId=req.userId;
+    const parseData=createTaskInput.safeParse(body);
+
+    if(!parseData.success){
+        return res.status(411).json({
+            message:"You've sent the wrong input"
+        })
+    }
+    
+    // parse the signature to ensure that the user has paid
+
+    let response=await prismaClient.$transaction(async tx=>{
+        const response=await tx.task.create({
+            data: {
+                title: parseData.data.title ?? DEFAULT_TITLE,
+                amount: "1",
+                signature: parseData.data.signature,
+                user_id: userId
+            }
+        });
+
+        await tx.option.createMany({
+            data: parseData.data.options.map(x=>({
+                image_url:x.imageUrl,
+                task_id:response.id
+            }))
+        })
+        return response;
+    })
+    res.json({
+        id:response.id
+    })
+})
+
+router.get("/presignedUrl",authMiddleware,async(req,res)=>{
     //@ts-ignore
     const userId=req.userId;
     const command = new PutObjectCommand({
