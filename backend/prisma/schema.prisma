@@ -33,12 +33,11 @@ model Option {
 }
 
 model Worker {
-  id            Int          @id @default(autoincrement())
-  address       String       @unique
-  balance_id    Int
-  pending_amout Int
-  locked_amount Int
-  submissions   Submission[]
+  id              Int          @id @default(autoincrement())
+  address         String       @unique
+  pending_amount  Int
+  locked_amount   Int
+  submissions     Submission[]
 }
 
 model Submission {

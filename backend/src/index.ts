@@ -2,7 +2,7 @@ import express from "express";
 import userRouter from "./routers/user";
 import workerRouter from "./routers/worker";
 export const JWT_SECRET="union12";
-
+export const WORKER_JWT_SECRET=JWT_SECRET+"worker";
 const app=express();
 app.use(express.json())
 
